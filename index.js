@@ -17,31 +17,32 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 // client.connect(err => {
 //   const collection = client.db("test").collection("devices");
 //   console.log('Laptop Wear house connected on mongodb');
-  // perform actions on the collection object
+// perform actions on the collection object
 //   client.close();
 // });
 
 async function run() {
     try {
-      await client.connect();
-      console.log('connected on mongodb Database');
-    //   const database = client.db("insertDB");
-    //   const haiku = database.collection("haiku");
-    //   // create a document to insert
-    //   const doc = {
-    //     title: "Record of a Shriveled Datum",
-    //     content: "No bytes, no problem. Just insert a document, in MongoDB",
-    //   }
-    //   const result = await haiku.insertOne(doc);
-    //   console.log(`A document was inserted with the _id: ${result.insertedId}`);
+        await client.connect();
+        console.log('connected on mongodb Database');
+        const productCollection = client.db("Laptop-Wear-House").collection("products");
+
+      
+
+        app.post("/uploadPd", async (req, res) => {
+            const product = req.body;
+            const result = await productCollection.insertOne(product);
+            res.send({ success: 'Upload  Access sucessfully' })
+        })
+
     } finally {
-    //   await client.close();
+        //   await client.close();
     }
-  }
-  run().catch(console.dir);
+}
+run().catch(console.dir);
 
 app.get('/', (req, res) => {
-    res.send('Running Assignment laptop wear house crud server');
+    res.send('Running Assignment laptop wear house server');
 })
 
 app.listen(port, () => {
