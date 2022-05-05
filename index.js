@@ -27,6 +27,7 @@ async function run() {
         await client.connect();
         console.log('connected on mongodb Database');
         const productCollection = client.db("Laptop-Wear-House").collection("products");
+        const reviewCollection = client.db("Laptop-Wear-House").collection("reviews");
 
         app.post("/login", async(req, res) => {
             const email = req.body;
@@ -57,6 +58,10 @@ async function run() {
         app.get('/products',async(req, res)=>{
             const products = await productCollection.find({}).toArray();
             res.send(products)
+        })
+        app.get('/reviews',async(req, res)=>{
+            const reviews = await reviewCollection.find({}).toArray();
+            res.send(reviews)
         })
 
     } finally {
