@@ -1,7 +1,7 @@
 const express = require('express')
 const cors = require('cors')
 const { MongoClient, ServerApiVersion } = require('mongodb');
-// const objectId=require('mongodb').ObjectId;
+const objectId = require('mongodb').ObjectId;
 const app = express()
 const jwt = require('jsonwebtoken');
 require('dotenv').config()
@@ -29,9 +29,9 @@ async function run() {
         const productCollection = client.db("Laptop-Wear-House").collection("products");
         const reviewCollection = client.db("Laptop-Wear-House").collection("reviews");
 
-        app.post("/login", async(req, res) => {
+        app.post("/login", async (req, res) => {
             const email = req.body;
-            
+
             const token = jwt.sign(email, process.env.ACCESS_TOKEN_SECRET);
 
             res.send({ token })
@@ -39,27 +39,73 @@ async function run() {
 
         app.post("/uploadPd", async (req, res) => {
             const product = req.body;
-            const tokenInfo = req.headers.authorization;
+           
+
+            const result = await productCollection.insertOne(product);
+                res.send(result)
+
             
-            const [email, accessToken] = tokenInfo.split(" ")
 
-            const decoded = verifyToken(accessToken)
-
-            if (email === decoded.email) {
-                const result = await productCollection.insertOne(product);
-                res.send({ success: 'Product Upload Successfully' })
-            }
-            else {
-                res.send({ success: 'UnAuthoraized Access' })
-            }
-
+          
         })
+        // app.post("/uploadPd", async (req, res) => {
+        //     const product = req.body;
+        //     const tokenInfo = req.headers.authorization;
 
-        app.get('/products',async(req, res)=>{
+        //     const [email, accessToken] = tokenInfo.split(" ")
+
+        //     const decoded = verifyToken(accessToken)
+
+        //     if (email === decoded.email) {
+        //         const result = await productCollection.insertOne(product);
+        //         res.send({ success: 'Product Upload Successfully' })
+        //     }
+        //     else {
+        //         res.send({ success: 'UnAuthoraized Access' })
+        //     }
+
+        // })
+
+        app.get('/products', async (req, res) => {
             const products = await productCollection.find({}).toArray();
             res.send(products)
         })
-        app.get('/reviews',async(req, res)=>{
+
+        app.get('/products/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: objectId(id) };
+            const result = await productCollection.findOne(query);
+            res.send(result);
+        });
+
+
+        // update 
+        app.put('/products/:id', async (req, res) => {
+            const id = req.params.id;
+            const updatedProduct = req.body;
+            console.log(updatedProduct);
+            const filter = { _id: objectId(id) };
+            const options = { upsert: true };
+            const updatedDoc ={
+                    $set: {
+                        quantity: updatedProduct.quantity
+                    },
+                };
+            const result = await productCollection.updateOne(filter, updatedDoc, options);
+            res.send(result);
+
+        })
+
+
+        //delete a Product
+        app.delete('/products/:id',async(req,res) => {
+            const id = req.params.id;
+            const query = {_id:objectId(id)}
+            const result = await productCollection.deleteOne(query)
+            res.send(result)
+        })
+
+        app.get('/reviews', async (req, res) => {
             const reviews = await reviewCollection.find({}).toArray();
             res.send(reviews)
         })
@@ -79,16 +125,16 @@ app.listen(port, () => {
 })
 
 // verify token function
-function verifyToken(token) {
-    let email;
-    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
-        if (err) {
-            email = 'Invalid email'
-        }
-        if (decoded) {
-            console.log(decoded)
-            email = decoded
-        }
-    });
-    return email;
-}
+// function verifyToken(token) {
+//     let email;
+//     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
+//         if (err) {
+//             email = 'Invalid email'
+//         }
+//         if (decoded) {
+//             console.log(decoded)
+//             email = decoded
+//         }
+//     });
+//     return email;
+// }
