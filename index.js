@@ -28,6 +28,25 @@ async function run() {
         console.log('connected on mongodb Database');
         const productCollection = client.db("Laptop-Wear-House").collection("products");
         const reviewCollection = client.db("Laptop-Wear-House").collection("reviews");
+        const orderCollection = client.db("Laptop-Wear-House").collection("orders");
+
+
+        function verifyJWT(req, res, next) {
+            const authHeader = req.headers.authorization;
+            if (!authHeader) {
+                return res.status(401).send({ message: 'unauthorized access' });
+            }
+            const token = authHeader.split(' ')[1];
+            jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+                if (err) {
+                    return res.status(403).send({ message: 'Forbidden access' });
+                }
+                console.log('decoded', decoded);
+                req.decoded = decoded;
+                next();
+            })
+        }
+
 
         app.post("/login", async (req, res) => {
             const email = req.body;
@@ -39,32 +58,9 @@ async function run() {
 
         app.post("/uploadPd", async (req, res) => {
             const product = req.body;
-           
-
             const result = await productCollection.insertOne(product);
                 res.send(result)
-
-            
-
-          
         })
-        // app.post("/uploadPd", async (req, res) => {
-        //     const product = req.body;
-        //     const tokenInfo = req.headers.authorization;
-
-        //     const [email, accessToken] = tokenInfo.split(" ")
-
-        //     const decoded = verifyToken(accessToken)
-
-        //     if (email === decoded.email) {
-        //         const result = await productCollection.insertOne(product);
-        //         res.send({ success: 'Product Upload Successfully' })
-        //     }
-        //     else {
-        //         res.send({ success: 'UnAuthoraized Access' })
-        //     }
-
-        // })
 
         app.get('/products', async (req, res) => {
             const products = await productCollection.find({}).toArray();
@@ -96,6 +92,35 @@ async function run() {
 
         })
 
+          //Order Collection ApI  
+
+          app.get('/order',verifyJWT, async(req, res)=>{
+
+            const decodedEmail = req.decoded.email;
+            const email = req.query.email;
+            
+            if (email === decodedEmail) {
+                const query = { email: email };
+                const cursor = orderCollection.find(query);
+                const orders = await cursor.toArray();
+                res.send(orders);
+            }
+            else{
+                res.status(403).send({message: 'forbidden access'})
+            }
+
+
+
+
+        })
+          app.post('/order', async(req, res)=>{
+            const order=req.body;
+            console.log(order.data);
+            const result=await orderCollection.insertOne(order);
+            res.send(result);
+        })
+
+        
 
         //delete a Product
         app.delete('/products/:id',async(req,res) => {
@@ -123,18 +148,3 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
     console.log('Assignment crud server Running ');
 })
-
-// verify token function
-// function verifyToken(token) {
-//     let email;
-//     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
-//         if (err) {
-//             email = 'Invalid email'
-//         }
-//         if (decoded) {
-//             console.log(decoded)
-//             email = decoded
-//         }
-//     });
-//     return email;
-// }
