@@ -146,5 +146,5 @@ app.get('/', (req, res) => {
 })
 
 app.listen(port, () => {
-    console.log('Assignment crud server Running ');
+    console.log('Assignment crud server Running');
 })
