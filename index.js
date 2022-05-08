@@ -15,12 +15,7 @@ app.use(express.json())
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.g697s.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
-// client.connect(err => {
-//   const collection = client.db("test").collection("devices");
-//   console.log('Laptop Wear house connected on mongodb');
-// perform actions on the collection object
-//   client.close();
-// });
+
 
 async function run() {
     try {
@@ -57,6 +52,8 @@ async function run() {
             res.send({ token })
         })
 
+        //UPLOAD a Product
+        
         app.post("/uploadPd", async (req, res) => {
             const product = req.body;
             const result = await productCollection.insertOne(product);
@@ -145,6 +142,17 @@ async function run() {
             const result =await messageCollection.insertOne(newUser);
             res.send(result)
         })
+           //customer subscriber post
+        app.post('/subscriber', async(req, res) => {
+            const newUser = req.body;
+            
+            console.log('adding new user', newUser);
+
+            const result =await messageCollection.insertOne(newUser);
+            res.send(result)
+        })
+
+
 
     } finally {
         //   await client.close();
