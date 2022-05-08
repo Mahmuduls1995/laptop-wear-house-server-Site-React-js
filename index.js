@@ -29,6 +29,7 @@ async function run() {
         const productCollection = client.db("Laptop-Wear-House").collection("products");
         const reviewCollection = client.db("Laptop-Wear-House").collection("reviews");
         const orderCollection = client.db("Laptop-Wear-House").collection("orders");
+        const messageCollection = client.db("Laptop-Wear-House").collection("message");
 
 
         function verifyJWT(req, res, next) {
@@ -133,6 +134,16 @@ async function run() {
         app.get('/reviews', async (req, res) => {
             const reviews = await reviewCollection.find({}).toArray();
             res.send(reviews)
+        })
+
+           //customer message post
+        app.post('/contact', async(req, res) => {
+            const newUser = req.body;
+            
+            console.log('adding new user', newUser);
+
+            const result =await messageCollection.insertOne(newUser);
+            res.send(result)
         })
 
     } finally {
