@@ -17,14 +17,17 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
 
+
 async function run() {
     try {
+
         await client.connect();
         console.log('connected on mongodb Database');
         const productCollection = client.db("Laptop-Wear-House").collection("products");
         const reviewCollection = client.db("Laptop-Wear-House").collection("reviews");
         const orderCollection = client.db("Laptop-Wear-House").collection("orders");
         const messageCollection = client.db("Laptop-Wear-House").collection("message");
+        const taskCollection = client.db("Laptop-Wear-House").collection("task");
 
 
         function verifyJWT(req, res, next) {
@@ -73,6 +76,8 @@ async function run() {
         });
 
 
+
+
         // update 
         app.put('/products/:id', async (req, res) => {
             const id = req.params.id;
@@ -107,16 +112,15 @@ async function run() {
                 res.status(403).send({message: 'forbidden access'})
             }
 
-
-
-
         })
+        
           app.post('/order', async(req, res)=>{
             const order=req.body;
             console.log(order.data);
             const result=await orderCollection.insertOne(order);
             res.send(result);
         })
+
 
         
 
@@ -127,6 +131,9 @@ async function run() {
             const result = await productCollection.deleteOne(query)
             res.send(result)
         })
+
+        
+
 
         app.get('/reviews', async (req, res) => {
             const reviews = await reviewCollection.find({}).toArray();
@@ -141,7 +148,40 @@ async function run() {
 
             const result =await messageCollection.insertOne(newUser);
             res.send(result)
+
         })
+
+           //to-do app task  post
+        app.post('/task', async(req, res) => {
+            const newTask = req.body;
+            
+            console.log('adding new user', newTask);
+
+            const result =await taskCollection.insertOne(newTask);
+            res.send(result)
+
+        })
+
+            //to-do app task  Show Ui
+        app.get('/task',async (req, res) => {
+            const allTasks = await taskCollection.find({}).toArray();
+            res.send(allTasks)
+        })
+        
+
+           //to-do app task Delete
+           app.delete('/task/:id',async(req,res) => {
+            const id = req.params.id;
+            const query = {_id:objectId(id)}
+            const result = await taskCollection.deleteOne(query)
+            res.send(result)
+        })
+
+
+
+
+
+
            //customer subscriber post
         app.post('/subscriber', async(req, res) => {
             const newUser = req.body;
